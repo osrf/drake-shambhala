@@ -1,6 +1,7 @@
-#!/bin/bash
+# -*- mode: cmake -*-
+# vi: set ft=cmake :
 
-# Copyright (c) 2017, Massachusetts Institute of Technology
+# Copyright (c) 2017, Massachusetts Institute of Technology.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,21 +30,11 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -eux
+find_package(GTest)
+if(GTEST_FOUND)
+  configure_file(find_resource.cc.in ${CMAKE_CURRENT_BINARY_DIR}/find_resource.cc)
+  add_executable(test_find_resource ${CMAKE_CURRENT_BINARY_DIR}/find_resource.cc)
+  target_link_libraries(test_find_resource GTest::GTest GTest::Main drake::drake)
 
-export DEBIAN_FRONTEND='noninteractive'
-
-yes | ./scripts/setup/linux/ubuntu/trusty/install_prereqs
-
-pushd /opt
-
-# 'latest' or a date, e.g. '20170719' will work for version
-readonly drake_version='latest'
-readonly drake_tarball="drake-${drake_version}-trusty.tar.gz"
-readonly drake_url="https://drake-packages.csail.mit.edu/drake/nightly/${drake_tarball}"
-
-curl -O "${drake_url}"
-tar -xzf "${drake_tarball}"
-rm -f "${drake_tarball}"
-
-popd
+  add_test(NAME test_find_resource COMMAND test_find_resource)
+endif()

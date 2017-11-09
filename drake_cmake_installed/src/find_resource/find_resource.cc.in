@@ -1,5 +1,3 @@
-#!/usr/bin/env groovy
-
 /*****************************************************************************
  * Copyright (c) 2017, Massachusetts Institute of Technology.
  * All rights reserved.
@@ -31,25 +29,37 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-node('linux_xenial_unprovisioned') {
-  def triggers = []
-  if (env.BRANCH_NAME == 'master') {
-    triggers << cron('H H(5-6) * * *')
-  }
-  properties ([
-    pipelineTriggers(triggers)
-  ])
-  try {
-    stage('checkout') {
-      checkout scm
-    }
-    stage('setup') {
-      sh './scripts/continuous_integration/jenkins/setup'
-    }
-    stage('build and test') {
-      sh './scripts/continuous_integration/jenkins/build_test'
-    }
-  } finally {
-    cleanWs(notFailBuild: true)
-  }
+///
+/// @brief  A simple find_resource test for locating installed drake resources.
+///
+
+#include <cstdlib>
+
+#include <gtest/gtest.h>
+
+#include "drake/common/find_resource.h"
+
+namespace shambhala {
+namespace find_resource {
+namespace {
+
+GTEST_TEST(FindResource, Available)
+{
+  drake::AddResourceSearchPath("@drake_DIR@/../../../share/drake");
+  auto result = drake::FindResourceOrThrow("drake/manipulation/models/iiwa_description/urdf/iiwa14_primitive_collision.urdf");
+  // it will throw if it does not find the resource correctly
+  SUCCEED();
 }
+
+    /// Makes sure that find_resource throws when given a unavailable resource.
+GTEST_TEST(FindResource, NotAvailable)
+{
+  ASSERT_THROW(
+    {drake::FindResourceOrThrow("nobody_home.urdf");},
+    std::runtime_error
+  );
+}
+
+}
+}  // namespace find_resource
+}  // namespace shambhala
